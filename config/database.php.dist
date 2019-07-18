@@ -1,0 +1,11 @@
+<?php
+
+$connection = array(
+    'dbname' => 'database_name',
+    'user' => 'database_user',
+    'password' => 'database_password',
+    'host' => 'database_host|127.0.0.1',
+    'driver' => 'database_driver|pdo_mysql',
+    'charset' => 'UTF8',
+    'driverOptions' => array('1002' => "SET NAMES 'UTF8' COLLATE 'utf8_general_ci'")
+);
