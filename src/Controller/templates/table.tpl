@@ -1,4 +1,17 @@
 <h4>Что говорят другие</h4>
+<div class="row">
+    {if $Count > 25}
+        <div class="btn-group justify-content-between" role="group" aria-label="Pagination">
+            <button type="button" class="btn btn-secondary btn-sm">Первая</button>
+            <button type="button" class="btn btn-secondary btn-sm">Предыдущая</button>
+
+            <button type="button" class="btn btn-outline-primary" disabled>{$Page}</button>
+
+            <button type="button" class="btn btn-secondary btn-sm">Следующая</button>
+            <button type="button" class="btn btn-secondary btn-sm">Последняя</button>
+        </div>
+    {/if}
+</div>
 {foreach from=$Records item=r}
     <div class="row">
         <table class="table table-borderless table-sm">

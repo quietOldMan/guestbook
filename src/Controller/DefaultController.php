@@ -32,19 +32,33 @@ class DefaultController
     }
 
     /**
-     * @param EntityManager $em
-     * @param Logger $logger
      * @return string
      * @throws \SmartyException
      */
-    public function view(EntityManager $em, Logger $logger)
+    public function view()
     {
-        $guestbookRecords = $em->getRepository(GuestbookRecord::class)->findAllAsArray();
+        return $this->smarty->fetch('view.tpl');
+    }
+
+    /**
+     * @param EntityManager $em
+     * @param Logger $logger
+     * @param int
+     * @return string
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \SmartyException
+     */
+    public function table(EntityManager $em, Logger $logger, int $page)
+    {
+        $guestbookRecords = $em->getRepository(GuestbookRecord::class)->findOnePageAsArray($page * 25);
+        $guestbookRecordsCount = $em->getRepository(GuestbookRecord::class)->countAllRecords();
 
 //        $logger->debug('1', $guestbookRecords);
 
         $this->smarty->assign('Records', $guestbookRecords);
+        $this->smarty->assign('Count', $guestbookRecordsCount);
+        $this->smarty->assign('Page', $page + 1);
 
-        return $this->smarty->fetch('view.tpl');
+        return $this->smarty->fetch('table.tpl');
     }
 }

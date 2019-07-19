@@ -21,8 +21,14 @@ $logger = new Logger('web_log');
 $logger->pushHandler(new StreamHandler('web.log', Logger::DEBUG));
 
 $guestbookRoute = new Route(
-    '/view',  // path
+    '/',  // path
     array('_controller' => 'Guestbook\Controller\DefaultController::view') // default values
+);
+
+$guestbookTableRoute = new Route(
+    '/view/{page}',  // path
+    array('_controller' => 'Guestbook\Controller\DefaultController::table', 'page' => 0), // default values
+    array('page' => '[0-9]+') // requirements
 );
 
 //    // Init route with dynamic placeholders
@@ -34,6 +40,7 @@ $guestbookRoute = new Route(
 
 $routes = new RouteCollection();
 $routes->add('guestbook', $guestbookRoute);
+$routes->add('table', $guestbookTableRoute);
 
 $context = new RequestContext();
 
@@ -45,9 +52,13 @@ $logger->debug(sprintf('New Request processing. PATH: [%s] QUERY: [%s]', $contex
 $matcher = new UrlMatcher($routes, $context);
 
 try {
-    $request->attributes->add($matcher->match($request->getPathInfo()));
-    $request->attributes->add(['em' => $entityManager]);
-    $request->attributes->add(['logger' => $logger]);
+    $attributes = $matcher->match($request->getPathInfo());
+    $request->attributes->add($attributes);
+
+    if ($attributes['_route'] === 'table') {
+        $request->attributes->add(['em' => $entityManager]);
+        $request->attributes->add(['logger' => $logger]);
+    }
 
     $controllerResolver = new Controller\ControllerResolver();
     $argumentResolver = new Controller\ArgumentResolver();
@@ -55,7 +66,7 @@ try {
     $controller = $controllerResolver->getController($request);
     $arguments = $argumentResolver->getArguments($request, $controller);
 
-    $response = new Response(call_user_func_array($controller, $arguments),Response::HTTP_OK);
+    $response = new Response(call_user_func_array($controller, $arguments), Response::HTTP_OK);
 } catch (ResourceNotFoundException $e) {
     $response = new Response('Not Found!', Response::HTTP_NOT_FOUND);
 } catch (Exception $exception) {
@@ -63,4 +74,5 @@ try {
     $response = new Response('An error occurred', 500);
 }
 
+$response->prepare($request);
 $response->send();
