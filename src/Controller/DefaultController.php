@@ -35,7 +35,7 @@ class DefaultController
      * @return string
      * @throws \SmartyException
      */
-    public function view()
+    public function indexAction()
     {
         return $this->smarty->fetch('view.tpl');
     }
@@ -48,7 +48,7 @@ class DefaultController
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \SmartyException
      */
-    public function table(EntityManager $em, Logger $logger, int $page)
+    public function loadTableAction(EntityManager $em, Logger $logger, int $page)
     {
         $guestbookRecords = $em->getRepository(GuestbookRecord::class)->findOnePageAsArray($page * 25);
         $guestbookRecordsCount = $em->getRepository(GuestbookRecord::class)->countAllRecords();
@@ -60,5 +60,32 @@ class DefaultController
         $this->smarty->assign('Page', array('currentPage' => $page + 1, 'maxPage' => ceil($guestbookRecordsCount / 25)));
 
         return $this->smarty->fetch('table.tpl');
+    }
+
+    /**
+     * @param string $captcha
+     * @return string
+     * @throws \SmartyException
+     */
+    public function createCaptchaAction(string $captcha)
+    {
+        $image = imagecreate(200, 100);
+        imagecolorallocate($image, 0, 0, 0);
+        $gray = imagecolorallocate($image, 128, 128, 128);
+
+        for ($i = 0; $i < 10; $i++) {
+            imageline($image, rand(0, 10) * 20, 0, rand(0, 10) * 20, 100, $gray);
+            imageline($image, 0, rand(0, 10) * 10, 200, rand(0, 10) * 10, $gray);
+        }
+        for ($i = 0; $i < strlen($captcha); $i++) {
+            $randcolors = imagecolorallocate($image, rand(100, 255), rand(200, 255), rand(200, 255));
+            imagettftext($image, 30, rand(-30, 30), 10 + 30 * $i, rand(40, 70), $randcolors,
+                $this->templateDir . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . "OpenSans-Regular.ttf",
+                $captcha[$i]);
+        }
+
+        imagepng($image);
+
+        return $image;
     }
 }
