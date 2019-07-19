@@ -96,11 +96,20 @@ class DefaultController
                 $captcha[$i]);
         }
 
+        ob_start();
         imagepng($image);
+        $image_data = ob_get_contents();
+        ob_end_clean();
+        imagedestroy($image);
 
-        $response = new BinaryFileResponse($image, Response::HTTP_OK);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'captcha.png');
-        $response->headers->set('Content-Type', 'image/png;');
+        $response = new Response();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->setContent($image_data);
+
+        $disposition = $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'captcha.png');
+        $response->headers->set('Content-Disposition', $disposition);
+        $response->headers->set('Content-Type', 'image/png');
+
 
         $response->prepare($request);
         $response->send();
