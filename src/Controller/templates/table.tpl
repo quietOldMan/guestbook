@@ -1,14 +1,20 @@
 <h4>Что говорят другие</h4>
 <div class="row">
-    {if $Count > 25}
+    {if $Page.maxPage > 1}
         <div class="btn-group justify-content-between" role="group" aria-label="Pagination">
-            <button type="button" class="btn btn-secondary btn-sm">Первая</button>
-            <button type="button" class="btn btn-secondary btn-sm">Предыдущая</button>
-
-            <button type="button" class="btn btn-outline-primary" disabled>{$Page}</button>
-
-            <button type="button" class="btn btn-secondary btn-sm">Следующая</button>
-            <button type="button" class="btn btn-secondary btn-sm">Последняя</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="pageFirst">Первая</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="pagePrev"
+                    value="{if $Page.currentPage > 1}{$Page.currentPage - 1}{elseif $Page.currentPage === 1}{$Page.currentPage}{/if}">
+                Предыдущая
+            </button>
+            <button type="button" class="btn btn-outline-primary" disabled
+                    value="{$Page.currentPage}">{$Page.currentPage}</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="pageNext"
+                    value="{if $Page.maxPage > $Page.currentPage}{$Page.currentPage + 1}{elseif $Page.maxPage == $Page.currentPage}{$Page.maxPage}{/if}">
+                Следующая
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="pageEnd" value="{$Page.maxPage}">Последняя
+            </button>
         </div>
     {/if}
 </div>

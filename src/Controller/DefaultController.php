@@ -56,8 +56,8 @@ class DefaultController
 //        $logger->debug('1', $guestbookRecords);
 
         $this->smarty->assign('Records', $guestbookRecords);
-        $this->smarty->assign('Count', $guestbookRecordsCount);
-        $this->smarty->assign('Page', $page + 1);
+//        $this->smarty->assign('Count', $guestbookRecordsCount);
+        $this->smarty->assign('Page', array('currentPage' => $page + 1, 'maxPage' => ceil($guestbookRecordsCount / 25)));
 
         return $this->smarty->fetch('table.tpl');
     }
