@@ -7,8 +7,8 @@
                     value="{if $Page.currentPage > 1}{$Page.currentPage - 1}{elseif $Page.currentPage === 1}{$Page.currentPage}{/if}">
                 Предыдущая
             </button>
-            <button type="button" class="btn btn-outline-primary" disabled
-                    value="{$Page.currentPage}">{$Page.currentPage}</button>
+            <button type="button" class="btn btn-outline-primary" id="pageCurrent" disabled
+                    value="{$Page.currentPage}">{$Page.currentPage} из {$Page.maxPage}</button>
             <button type="button" class="btn btn-secondary btn-sm" id="pageNext"
                     value="{if $Page.maxPage > $Page.currentPage}{$Page.currentPage + 1}{elseif $Page.maxPage == $Page.currentPage}{$Page.maxPage}{/if}">
                 Следующая
