@@ -7,6 +7,10 @@ use Doctrine\ORM\EntityManager;
 use Guestbook\Entity\GuestbookRecord;
 use Monolog\Logger;
 use Smarty;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class DefaultController
 {
@@ -32,42 +36,50 @@ class DefaultController
     }
 
     /**
-     * @return string
+     * @param Request $request
      * @throws \SmartyException
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
-        return $this->smarty->fetch('view.tpl');
+        $response = new Response();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->setContent($this->smarty->fetch('view.tpl'));
+
+        $response->prepare($request);
+        $response->send();
+        return;
     }
 
     /**
+     * @param Request $request
      * @param EntityManager $em
      * @param Logger $logger
-     * @param int
-     * @return string
+     * @param int $page
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \SmartyException
      */
-    public function loadTableAction(EntityManager $em, Logger $logger, int $page)
+    public function loadTableAction(Request $request, EntityManager $em, Logger $logger, int $page)
     {
         $guestbookRecords = $em->getRepository(GuestbookRecord::class)->findOnePageAsArray($page * 25);
         $guestbookRecordsCount = $em->getRepository(GuestbookRecord::class)->countAllRecords();
 
-//        $logger->debug('1', $guestbookRecords);
-
         $this->smarty->assign('Records', $guestbookRecords);
-//        $this->smarty->assign('Count', $guestbookRecordsCount);
         $this->smarty->assign('Page', array('currentPage' => $page + 1, 'maxPage' => ceil($guestbookRecordsCount / 25)));
 
-        return $this->smarty->fetch('table.tpl');
+        $response = new Response();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->setContent($this->smarty->fetch('table.tpl'));
+
+        $response->prepare($request);
+        $response->send();
+        return;
     }
 
     /**
+     * @param Request $request
      * @param string $captcha
-     * @return string
-     * @throws \SmartyException
      */
-    public function createCaptchaAction(string $captcha)
+    public function createCaptchaAction(Request $request, string $captcha)
     {
         $image = imagecreate(200, 100);
         imagecolorallocate($image, 0, 0, 0);
@@ -86,6 +98,12 @@ class DefaultController
 
         imagepng($image);
 
-        return $image;
+        $response = new BinaryFileResponse($image, Response::HTTP_OK);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'captcha.png');
+        $response->headers->set('Content-Type', 'image/png;');
+
+        $response->prepare($request);
+        $response->send();
+        return;
     }
 }

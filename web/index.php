@@ -5,7 +5,6 @@ require_once __DIR__ . '/../bootstrap.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
@@ -41,13 +40,6 @@ $captchaRoute = new Route(
     array('_controller' => 'Guestbook\Controller\DefaultController::createCaptchaAction', 'page' => 0) // default values
 );
 
-//    // Init route with dynamic placeholders
-//    $guestbookPageRoute = new Route(
-//        '/{id}',
-//        array('controller' => 'FooController', 'method'=>'load'),
-//        array('id' => '[0-9]+')
-//    );
-
 $routes = new RouteCollection();
 $routes->add('guestbook', $guestbookRoute);
 $routes->add('table', $guestbookTableRoute);
@@ -69,7 +61,7 @@ try {
     if ($attributes['_route'] === 'table') {
         $request->attributes->add(['em' => $entityManager]);
         $request->attributes->add(['logger' => $logger]);
-    } elseif ($attributes['_route'] === 'captcha') {
+    } else {
         $captcha_seed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
         $captcha = substr(str_shuffle($captcha_seed), 0, 6);
         $request->attributes->add(['captcha' => $captcha]);
@@ -81,17 +73,10 @@ try {
     $controller = $controllerResolver->getController($request);
     $arguments = $argumentResolver->getArguments($request, $controller);
 
-    if ($attributes['_route'] === 'captcha') {
-        $response = new BinaryFileResponse(call_user_func_array($controller, $arguments), Response::HTTP_OK, 'image/png');
-    } else {
-        $response = new Response(call_user_func_array($controller, $arguments), Response::HTTP_OK);
-    }
+    call_user_func_array($controller, $arguments);
 } catch (ResourceNotFoundException $e) {
     $response = new Response('Not Found!', Response::HTTP_NOT_FOUND);
 } catch (Exception $exception) {
     $logger->error(sprintf('Exception on route processing. Message: %s', $exception->getMessage()));
-    $response = new Response('An error occurred', 500);
+    $response = new Response('An error occurred', Response::HTTP_INTERNAL_SERVER_ERROR);
 }
-
-$response->prepare($request);
-$response->send();
