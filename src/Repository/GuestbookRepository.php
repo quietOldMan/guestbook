@@ -17,6 +17,7 @@ class GuestbookRepository extends EntityRepository
             ->select(array('g.createTime, g.text', 'u.userName', 'u.email'))
             ->from('Guestbook\Entity\GuestbookRecord', 'g')
             ->leftJoin('g.user', 'u')
+            ->orderBy('g.createTime', 'DESC')
             ->getQuery()->getArrayResult();
     }
 }
