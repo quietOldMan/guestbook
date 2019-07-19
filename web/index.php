@@ -35,6 +35,11 @@ $guestbookTableRoute = new Route(
     array('page' => '[0-9]+') // requirements
 );
 
+$guestbookAddRecordRoute = new Route(
+    '/record',  // path
+    array('_controller' => 'Guestbook\Controller\DefaultController::addRecordAction') // default values
+);
+
 $captchaRoute = new Route(
     '/captcha',  // path
     array('_controller' => 'Guestbook\Controller\DefaultController::createCaptchaAction', 'page' => 0) // default values
@@ -43,6 +48,7 @@ $captchaRoute = new Route(
 $routes = new RouteCollection();
 $routes->add('guestbook', $guestbookRoute);
 $routes->add('table', $guestbookTableRoute);
+$routes->add('record', $guestbookAddRecordRoute);
 $routes->add('captcha', $captchaRoute);
 
 $context = new RequestContext();
@@ -58,14 +64,12 @@ try {
     $attributes = $matcher->match($request->getPathInfo());
     $request->attributes->add($attributes);
 
-    if ($attributes['_route'] === 'table') {
-        $request->attributes->add(['em' => $entityManager]);
-        $request->attributes->add(['logger' => $logger]);
-    } else {
-        $captcha_seed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
-        $captcha = substr(str_shuffle($captcha_seed), 0, 6);
-        $request->attributes->add(['captcha' => $captcha]);
-    }
+    $request->attributes->add(['em' => $entityManager]);
+    $request->attributes->add(['logger' => $logger]);
+
+    $captcha_seed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
+    $captcha = substr(str_shuffle($captcha_seed), 0, 6);
+    $request->attributes->add(['captcha' => $captcha]);
 
     $controllerResolver = new Controller\ControllerResolver();
     $argumentResolver = new Controller\ArgumentResolver();

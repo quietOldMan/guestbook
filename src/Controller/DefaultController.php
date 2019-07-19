@@ -5,13 +5,20 @@ define('BASE_PATH', realpath(dirname(__FILE__)));
 
 use Doctrine\ORM\EntityManager;
 use Guestbook\Entity\GuestbookRecord;
+use Guestbook\Entity\User;
+use Guestbook\Entity\UserAgent;
 use Monolog\Logger;
 use Smarty;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
+/**
+ * Class DefaultController
+ * @package Guestbook\Controller
+ *
+ * TODO: New method for ajax CAPTHCA validation.
+ */
 class DefaultController
 {
 
@@ -72,6 +79,49 @@ class DefaultController
 
         $response->prepare($request);
         $response->send();
+        return;
+    }
+
+    /**
+     * @param Request $request
+     * @param EntityManager $em
+     * @param Logger $logger
+     *
+     * TODO: Need server-side full-blown validation!
+     * @throws \Exception
+     */
+    public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
+    {
+        if($request->getMethod() === $request::METHOD_POST) {
+            $guestbookRecord = new GuestbookRecord();
+            $user = new User();
+            $userAgent = new UserAgent();
+
+            $user->setUserName($request->request->get('inputUserName'));
+            $user->setEmail($request->request->get('inputEmail'));
+            $user->setUserIp($request->getClientIp());
+
+            $userAgent->setUser($user);
+            $userAgent->setUserAgent($request->headers->get('User-Agent'));
+
+            $guestbookRecord->setUser($user);
+            $guestbookRecord->setCreateTime(new \DateTime('now'));
+            $guestbookRecord->setText($request->request->get('inputMessage'));
+
+            $em->beginTransaction();
+            try {
+                $em->persist($user);
+                $em->persist($userAgent);
+                $em->persist($guestbookRecord);
+                $em->flush($user);
+                $em->flush($userAgent);
+                $em->flush($guestbookRecord);
+            } catch (\Exception $e) {
+                $em->rollback();
+                return;
+            }
+            $em->commit();
+        };
         return;
     }
 
