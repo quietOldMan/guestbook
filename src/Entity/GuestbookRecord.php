@@ -50,7 +50,7 @@ class GuestbookRecord
 
     /**
      * @param int $id
-     * @return User
+     * @return GuestbookRecord
      */
     public function setId(int $id)
     {
