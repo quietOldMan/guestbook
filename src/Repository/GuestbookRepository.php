@@ -37,7 +37,7 @@ class GuestbookRepository extends EntityRepository
      * @param int $offset
      * @return array
      */
-    public function findOnePageAsArray(int $offset)
+    public function getOnePageAsArray(int $offset)
     {
         return $this->getEntityManager()->createQueryBuilder()
             ->select(array('g.createTime, g.text', 'u.userName', 'u.email'))

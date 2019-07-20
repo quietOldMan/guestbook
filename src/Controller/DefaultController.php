@@ -67,7 +67,7 @@ class DefaultController
      */
     public function loadTableAction(Request $request, EntityManager $em, Logger $logger, int $page)
     {
-        $guestbookRecords = $em->getRepository(GuestbookRecord::class)->findOnePageAsArray($page * 25);
+        $guestbookRecords = $em->getRepository(GuestbookRecord::class)->getOnePageAsArray($page * 25);
         $guestbookRecordsCount = $em->getRepository(GuestbookRecord::class)->countAllRecords();
 
         $this->smarty->assign('Records', $guestbookRecords);
