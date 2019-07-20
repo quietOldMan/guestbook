@@ -92,7 +92,7 @@ class DefaultController
      */
     public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
     {
-        if($request->getMethod() === $request::METHOD_POST) {
+        if ($request->getMethod() === $request::METHOD_POST) {
             $guestbookRecord = new GuestbookRecord();
             $user = new User();
             $userAgent = new UserAgent();
@@ -108,19 +108,13 @@ class DefaultController
             $guestbookRecord->setCreateTime(new \DateTime('now'));
             $guestbookRecord->setText($request->request->get('inputMessage'));
 
-            $em->beginTransaction();
             try {
-                $em->persist($user);
                 $em->persist($userAgent);
                 $em->persist($guestbookRecord);
-                $em->flush($user);
-                $em->flush($userAgent);
-                $em->flush($guestbookRecord);
+                $em->flush();
             } catch (\Exception $e) {
-                $em->rollback();
                 return;
             }
-            $em->commit();
         };
         return;
     }

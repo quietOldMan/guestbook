@@ -15,7 +15,7 @@ class UserAgent
     /**
      * @var User
      * @ORM\Id
-     * @ORM\OneToOne(targetEntity="User")
+     * @ORM\OneToOne(targetEntity="User", cascade={"persist", "remove"})
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      */
     private $user;
