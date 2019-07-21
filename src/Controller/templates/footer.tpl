@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script nonce="{$csp_nonce}" type="text/javascript">
     {literal}
     $(document).ready(function () {
         $.get("/view", function (data) {

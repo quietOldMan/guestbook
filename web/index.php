@@ -14,12 +14,15 @@ use Symfony\Component\HttpKernel\Controller;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Guestbook\Utils\NounceGenerator;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $session = new Session();
 $session->start();
+
+$nounce = (new NounceGenerator())->getNonce();
 
 $logger = new Logger('web_log');
 $logger->pushHandler(new StreamHandler('web.log', Logger::DEBUG));
@@ -69,6 +72,8 @@ $matcher = new UrlMatcher($routes, $context);
 try {
     $attributes = $matcher->match($request->getPathInfo());
     $request->attributes->add($attributes);
+
+    $request->attributes->add(['nounce' => $nounce]);
 
     $request->attributes->add(['em' => $entityManager]);
     $request->attributes->add(['logger' => $logger]);

@@ -38,16 +38,22 @@ class DefaultController
         $this->templateDir = BASE_PATH . DIRECTORY_SEPARATOR . 'templates';
         $this->smarty = new Smarty();
         $this->smarty->setTemplateDir($this->templateDir);
+        $this->smarty->setEscapeHtml(true);
     }
 
     /**
      * @param Request $request
+     * @param string $nounce
      * @throws \SmartyException
      */
-    public function indexAction(Request $request)
+    public function indexAction(Request $request, string $nounce)
     {
         $response = new Response();
         $response->setStatusCode(Response::HTTP_OK);
+
+        $response->headers->set('Content-Security-Policy', "script-src 'nonce-" . $nounce . "' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:; object-src 'none'");
+        $this->smarty->assign('csp_nonce', $nounce);
+
         $response->setContent($this->smarty->fetch('view.tpl'));
 
         $response->prepare($request);
