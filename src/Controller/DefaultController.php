@@ -2,13 +2,16 @@
 
 namespace Guestbook\Controller;
 define('BASE_PATH', realpath(dirname(__FILE__)));
+define('ROOT_PATH', dirname(dirname(dirname(__FILE__))));
 
 use Doctrine\ORM\EntityManager;
 use Guestbook\Entity\GuestbookRecord;
+use Guestbook\Entity\RecordAttachment;
 use Guestbook\Entity\User;
 use Guestbook\Entity\UserAgent;
 use Monolog\Logger;
 use Smarty;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -19,11 +22,15 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  */
 class DefaultController
 {
-
     /**
      * @var string
      */
     private $templateDir;
+
+    /**
+     * @var string
+     */
+    private $uploadDir;
 
     /**
      * @var Smarty
@@ -41,6 +48,7 @@ class DefaultController
     public function __construct()
     {
         $this->templateDir = BASE_PATH . DIRECTORY_SEPARATOR . 'templates';
+        $this->uploadDir = 'public' . DIRECTORY_SEPARATOR . 'uploads';
 
         $this->smarty = new Smarty();
         $this->smarty->setTemplateDir($this->templateDir);
@@ -110,6 +118,7 @@ class DefaultController
                 $guestbookRecord = new GuestbookRecord();
                 $user = new User();
                 $userAgent = new UserAgent();
+                $recordAttachment = new RecordAttachment();
 
 //                filter_var(
 //                    $string,
@@ -151,6 +160,25 @@ class DefaultController
 
                 $em->persist($userAgent);
                 $em->persist($guestbookRecord);
+
+                if (!empty($request->files->get('inputFile'))) {
+                    /** @var UploadedFile $uploadedFile */
+                    $uploadedFile = $request->files->get('inputFile');
+
+                    $contentPath = $this->uploadDir . DIRECTORY_SEPARATOR . $guestbookRecord->getCreateTime()->format('Ym');
+
+                    $recordAttachment->setRecordId($guestbookRecord);
+                    $recordAttachment->setContentPath($contentPath);
+                    $recordAttachment->setFileName($uploadedFile->getClientOriginalName());
+                    $recordAttachment->setContentType($uploadedFile->getClientMimeType());
+                    $recordAttachment->setContentSize($uploadedFile->getSize());
+
+                    // После перемещения getSize() уже не работает, заполнение модели идёт выше.
+                    $uploadedFile->move(ROOT_PATH . DIRECTORY_SEPARATOR . $contentPath, $uploadedFile->getClientOriginalName());
+
+                    $em->persist($recordAttachment);
+                };
+
                 $em->flush();
             } else {
                 throw new \Exception('Invalid method for this route! [' . $request->getMethod() . '' . $request->isXmlHttpRequest() . ']');
