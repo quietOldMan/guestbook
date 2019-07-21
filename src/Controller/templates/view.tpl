@@ -15,7 +15,7 @@
                     <label for="inputUserName">Ваше имя</label>
                     <input type="text" class="form-control" name="inputUserName" id="inputUserName" placeholder="Имя"
                            aria-describedby="nameHelp">
-                    <small id="nameHelp" class="form-text text-muted">Допускаются латинские буквы, цифра и точка.
+                    <small id="nameHelp" class="form-text text-muted">Допускаются латинские буквы, цифры и точка.
                     </small>
                 </div>
                 <div class="form-group">
@@ -28,13 +28,17 @@
                 </div>
                 <div class="form-group">
                     <label for="inputMessage">Сообщение</label>
-                    <textarea class="form-control" name="inputMessage" id="inputMessage" rows="3"></textarea>
+                    <textarea class="form-control" name="inputMessage" id="inputMessage" rows="3"
+                              aria-describedby="messageHelp"></textarea>
+                    <small id="messageHelp" class="form-text text-muted" style="display:none;">HTML тэги недопустимы!
+                    </small>
                 </div>
                 <div class="form-group">
-                    <img class="rounded float-left p-3" src="/captcha"/><br/><input type="text" class="form-control"
-                                                                                    name="inputCAPTCHA"
-                                                                                    id="inputCAPTCHA" placeholder=""
-                                                                                    aria-describedby="CAPTCHAHelp">
+                    <img class="rounded float-left p-3" src="/captcha" id="captcha" name="captcha"/><br/><input
+                            type="text" class="form-control"
+                            name="inputCAPTCHA"
+                            id="inputCAPTCHA" placeholder=""
+                            aria-describedby="CAPTCHAHelp">
                     <small id="CAPTCHAHelp" class="form-text text-muted">Проверка на человечность, введите текст с
                         картинки.
                     </small>

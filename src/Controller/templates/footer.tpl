@@ -30,6 +30,25 @@
         });
     });
 
+    $('body').on("click", "#captcha", function () {
+        $(this).attr('src', '/captcha?' + Math.random());
+        $(this).load($(this).attr('src'));
+    });
+
+    // $(document).on("focusout", "#inputMessage", function (e) {
+    //     var reg = /<(.|\n)*?>/g;
+    //     if (reg.test($('#inputMessage').val()) == true) {
+    //         alert('HTML Tag are not allowed');
+    //     }
+    //     e.preventDefault();
+    // });
+
+    $.validator.addMethod("validateMessageText", function (value, element) {
+        var reg = /<(.|\n)*?>/g;
+        return (reg.test(value) !== true);
+    }, '');
+
+
     $(function () {
         // Initialize form validation on the registration form.
         // It has the name attribute "registration"
@@ -39,23 +58,45 @@
                 // The key name on the left side is the name attribute
                 // of an input field. Validation rules are defined
                 // on the right side
-                inputUserName: "required",
+                inputUserName: {
+                    required: true,
+                    pattern: /^[a-zA-Z0-9'.\s]{1,64}$/
+                },
                 inputEmail: {
                     required: true,
                     // Specify that email should be validated
                     // by the built-in "email" rule
                     email: true
                 },
-                inputMessage: "required",
-                inputCAPTCHA: "required",
+                inputMessage: {
+                    required: true,
+                    validateMessageText: true
+                },
+                inputCAPTCHA: {
+                    required: true,
+                    pattern: /^[a-zA-Z0-9\s]{1,8}$/,
+                    remote: {
+                        url: 'validate-captcha',
+                        type: "post",
+                    }
+                },
 
             },
             // Specify validation error messages
             messages: {
-                inputUserName: "Введите ваше имя",
+                inputUserName: {
+                    required: "Пожалуйста, введите ваше имя",
+                    pattern: "Мы не можем принять имя с недопустимыми символами"
+                },
                 inputEmail: "Введите правильный email",
-                inputMessage: "Напишите нам пару слов",
-                inputCAPTCHA: "Введите текст с картинки",
+                inputMessage: {
+                    required: "Напишите нам хоть пару слов",
+                    validateMessageText: "HTML тэги в сообщении недопустимы!"
+                },
+                inputCAPTCHA: {
+                    required: "Введите текст с картинки",
+                    pattern: "В тексте должны быть только цифры и латинские буквы"
+                },
             },
             // Make sure the form is submitted to the destination defined
             // in the "action" attribute of the form when valid
@@ -74,6 +115,34 @@
             }
         });
     });
+
+    // $(function () {
+    //     $("body").on("click", "#refreshimg", function () {
+    //         $.post("newsession.php");
+    //         $("#captchaimage").load("image_req.php");
+    //         return false;
+    //     });
+    //
+    //     $("#captchaform").validate({
+    //         rules: {
+    //             captcha: {
+    //                 required: true,
+    //                 remote: "process.php"
+    //             }
+    //         },
+    //         messages: {
+    //             captcha: "Correct captcha is required. Click the captcha to generate a new one"
+    //         },
+    //         submitHandler: function () {
+    //             alert("Correct captcha!");
+    //         },
+    //         success: function (label) {
+    //             label.addClass("valid").text("Valid captcha!")
+    //         },
+    //         onkeyup: false
+    //     });
+    //
+    // });
     {/literal}
 </script>
 </body>
