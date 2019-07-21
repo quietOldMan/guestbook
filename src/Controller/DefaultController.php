@@ -1,8 +1,8 @@
 <?php
 
 namespace Guestbook\Controller;
-define('BASE_PATH', realpath(dirname(__FILE__)));
-define('ROOT_PATH', dirname(dirname(dirname(__FILE__))));
+define('BASE_PATH', realpath(dirname(__FILE__))); // путь, где контроллер лежит
+define('ROOT_PATH', dirname(dirname(dirname(__FILE__)))); // путь до src
 
 use Doctrine\ORM\EntityManager;
 use Guestbook\Entity\GuestbookRecord;
@@ -11,7 +11,6 @@ use Guestbook\Entity\User;
 use Guestbook\Entity\UserAgent;
 use Monolog\Logger;
 use Smarty;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -106,6 +105,8 @@ class DefaultController
      * @param EntityManager $em
      * @param Logger $logger
      * @throws \Exception
+     *
+     * TODO: Перенести работу с сущностями/моделями в репозиторий? Отделить иначе?
      */
     public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
     {
@@ -211,29 +212,10 @@ class DefaultController
      */
     public function createCaptchaAction(Request $request, string $captcha)
     {
-        $image = imagecreate(200, 100);
-        imagecolorallocate($image, 0, 0, 0);
-        $gray = imagecolorallocate($image, 128, 128, 128);
-
-        for ($i = 0; $i < 10; $i++) {
-            imageline($image, rand(0, 10) * 20, 0, rand(0, 10) * 20, 100, $gray);
-            imageline($image, 0, rand(0, 10) * 10, 200, rand(0, 10) * 10, $gray);
-        }
-        for ($i = 0; $i < strlen($captcha); $i++) {
-            $randcolors = imagecolorallocate($image, rand(100, 255), rand(200, 255), rand(200, 255));
-            imagettftext($image, 30, rand(-30, 30), 10 + 30 * $i, rand(40, 70), $randcolors,
-                $this->templateDir . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . "OpenSans-Regular.ttf",
-                $captcha[$i]);
-        }
-
-        ob_start();
-        imagepng($image);
-        $image_data = ob_get_contents();
-        ob_end_clean();
-        imagedestroy($image);
+        $imageData = $this->generateCaptchaImage($captcha);
 
         $this->response->setStatusCode(Response::HTTP_OK);
-        $this->response->setContent($image_data);
+        $this->response->setContent($imageData);
 
         $disposition = $this->response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'captcha.png');
         $this->response->headers->set('Content-Disposition', $disposition);
@@ -261,10 +243,39 @@ class DefaultController
     }
 
     /**
+     * @param string $captcha
+     * @return false|string
+     */
+    private function generateCaptchaImage(string $captcha)
+    {
+        $image = imagecreate(200, 100);
+        imagecolorallocate($image, 0, 0, 0);
+        $gray = imagecolorallocate($image, 128, 128, 128);
+
+        for ($i = 0; $i < 10; $i++) {
+            imageline($image, rand(0, 10) * 20, 0, rand(0, 10) * 20, 100, $gray);
+            imageline($image, 0, rand(0, 10) * 10, 200, rand(0, 10) * 10, $gray);
+        }
+        for ($i = 0; $i < strlen($captcha); $i++) {
+            $randcolors = imagecolorallocate($image, rand(100, 255), rand(200, 255), rand(200, 255));
+            imagettftext($image, 30, rand(-30, 30), 10 + 30 * $i, rand(40, 70), $randcolors,
+                $this->templateDir . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . "OpenSans-Regular.ttf",
+                $captcha[$i]);
+        }
+
+        ob_start();
+        imagepng($image);
+        $image_data = ob_get_contents();
+        ob_end_clean();
+        imagedestroy($image);
+
+        return $image_data;
+    }
+
+    /**
      * @param UploadedFile $file
      * @param int $maxWidth
      * @param int $maxHeight
-     * @return false|int
      */
     private function resizeImageIfNeeded(UploadedFile $file, int $maxWidth = 320, int $maxHeight = 240)
     {
