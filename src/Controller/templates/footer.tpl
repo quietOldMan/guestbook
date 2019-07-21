@@ -74,7 +74,7 @@
                 },
                 inputCAPTCHA: {
                     required: true,
-                    pattern: /^[a-zA-Z0-9\s]{1,8}$/,
+                    pattern: /^[a-zA-Z0-9\s]+$/,
                     remote: {
                         url: 'validate-captcha',
                         type: "post",
@@ -85,10 +85,10 @@
             // Specify validation error messages
             messages: {
                 inputUserName: {
-                    required: "Пожалуйста, введите ваше имя",
+                    required: "Пожалуйста, введите ваше имя, не более 64 символов",
                     pattern: "Мы не можем принять имя с недопустимыми символами"
                 },
-                inputEmail: "Введите правильный email",
+                inputEmail: "Просим указать email вида name@domain.com",
                 inputMessage: {
                     required: "Напишите нам хоть пару слов",
                     validateMessageText: "HTML тэги в сообщении недопустимы!"
@@ -98,6 +98,26 @@
                     pattern: "В тексте должны быть только цифры и латинские буквы"
                 },
             },
+            onkeyup: function (element, event) {
+                if (element.name === "inputCAPTCHA") {
+                    return false;
+                } else {
+                    $.validator.defaults.onkeyup.call(this, element, event);
+                }
+            },
+            onfocusout: function (element, event) {
+                if (element.name === "inputCAPTCHA") {
+                    return false;
+                } else {
+                    $.validator.defaults.onfocusout.call(this, element, event);
+                }
+            },
+            highlight: function (element, errorClass) {
+                $(element).fadeOut(function () {
+                    $(element).fadeIn();
+                });
+            },
+            // }
             // Make sure the form is submitted to the destination defined
             // in the "action" attribute of the form when valid
             submitHandler: function (form) {
