@@ -31,14 +31,22 @@ class DefaultController
     private $smarty;
 
     /**
+     * @var Response
+     */
+    private $response;
+
+    /**
      * DefaultController constructor.
      */
     public function __construct()
     {
         $this->templateDir = BASE_PATH . DIRECTORY_SEPARATOR . 'templates';
+
         $this->smarty = new Smarty();
         $this->smarty->setTemplateDir($this->templateDir);
         $this->smarty->setEscapeHtml(true);
+
+        $this->response = new Response();
     }
 
     /**
@@ -48,16 +56,15 @@ class DefaultController
      */
     public function indexAction(Request $request, string $nounce)
     {
-        $response = new Response();
-        $response->setStatusCode(Response::HTTP_OK);
+        $this->response->setStatusCode(Response::HTTP_OK);
 
-        $response->headers->set('Content-Security-Policy', "script-src 'nonce-" . $nounce . "' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:; object-src 'none'");
+        $this->response->headers->set('Content-Security-Policy', "script-src 'nonce-" . $nounce . "' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:; object-src 'none'");
         $this->smarty->assign('csp_nonce', $nounce);
 
-        $response->setContent($this->smarty->fetch('view.tpl'));
+        $this->response->setContent($this->smarty->fetch('view.tpl'));
 
-        $response->prepare($request);
-        $response->send();
+        $this->response->prepare($request);
+        $this->response->send();
         return;
     }
 
@@ -77,12 +84,11 @@ class DefaultController
         $this->smarty->assign('Records', $guestbookRecords);
         $this->smarty->assign('Page', array('currentPage' => $page + 1, 'maxPage' => ceil($guestbookRecordsCount / 25)));
 
-        $response = new Response();
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->setContent($this->smarty->fetch('table.tpl'));
+        $this->response->setStatusCode(Response::HTTP_OK);
+        $this->response->setContent($this->smarty->fetch('table.tpl'));
 
-        $response->prepare($request);
-        $response->send();
+        $this->response->prepare($request);
+        $this->response->send();
         return;
     }
 
@@ -94,9 +100,8 @@ class DefaultController
      */
     public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
     {
-        $response = new Response();
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->headers->set('Content-Type', 'text/json');
+        $this->response->setStatusCode(Response::HTTP_OK);
+        $this->response->headers->set('Content-Type', 'text/json');
 
         $status = 'true';
 
@@ -106,13 +111,21 @@ class DefaultController
                 $user = new User();
                 $userAgent = new UserAgent();
 
+//                filter_var(
+//                    $string,
+//                    FILTER_VALIDATE_REGEXP,
+//                    array(
+//                        "options" => array("regexp" => "/^[a-zA-Z0-9'.\s]{1,64}$/")
+//                    )
+//                )
+//                ??? vs preg_match
                 if (preg_match('/^[a-zA-Z0-9\'.\s]{1,64}$/', $request->request->get('inputUserName'))) {
                     $user->setUserName($request->request->get('inputUserName'));
                 } else {
                     throw new \Exception('There is invalid characters in user name! [' . $request->request->get('inputUserName') . ']');
                 }
 
-                if (filter_var($request->request->get('inputEmail'), FILTER_VALIDATE_EMAIL)) {
+                if (filter_var($request->request->get('inputEmail'), FILTER_VALIDATE_EMAIL) !== false) {
                     $user->setEmail($request->request->get('inputEmail'));
                 } else {
                     throw new \Exception('Email is not valid! [' . $request->request->get('inputEmail') . ']');
@@ -144,14 +157,14 @@ class DefaultController
             };
         } catch (\Exception $e) {
             $logger->error('Exception during data processing.', [($e->getMessage())]);
-            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+            $this->response->setStatusCode(Response::HTTP_BAD_REQUEST);
             $status = 'false';
         }
 
-        $response->setContent(json_encode(['success' => $status]));
+        $this->response->setContent(json_encode(['success' => $status]));
 
-        $response->prepare($request);
-        $response->send();
+        $this->response->prepare($request);
+        $this->response->send();
 
         return;
     }
@@ -183,33 +196,31 @@ class DefaultController
         ob_end_clean();
         imagedestroy($image);
 
-        $response = new Response();
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->setContent($image_data);
+        $this->response->setStatusCode(Response::HTTP_OK);
+        $this->response->setContent($image_data);
 
-        $disposition = $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'captcha.png');
-        $response->headers->set('Content-Disposition', $disposition);
-        $response->headers->set('Content-Type', 'image/png');
+        $disposition = $this->response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'captcha.png');
+        $this->response->headers->set('Content-Disposition', $disposition);
+        $this->response->headers->set('Content-Type', 'image/png');
 
-        $response->prepare($request);
-        $response->send();
+        $this->response->prepare($request);
+        $this->response->send();
         return;
     }
 
     public function validateCaptchaAction(Request $request, Logger $logger)
     {
-        $response = new Response();
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->headers->set('Content-Type', 'text/json');
+        $this->response->setStatusCode(Response::HTTP_OK);
+        $this->response->headers->set('Content-Type', 'text/json');
 
         if (!empty($request->getSession()) && $request->get('inputCAPTCHA') === $request->getSession()->get('captcha')) {
-            $response->setContent(json_encode(true));
+            $this->response->setContent(json_encode(true));
         } else {
-            $response->setContent(json_encode('Текст не совпадает с картинкой, попробуйте снова'));
+            $this->response->setContent(json_encode('Текст не совпадает с картинкой, попробуйте снова'));
         }
 
-        $response->prepare($request);
-        $response->send();
+        $this->response->prepare($request);
+        $this->response->send();
         return;
     }
 }
