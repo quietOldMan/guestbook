@@ -16,8 +16,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 /**
  * Class DefaultController
  * @package Guestbook\Controller
- *
- * TODO: New method for ajax CAPTCHA validation.
  */
 class DefaultController
 {
@@ -86,38 +84,66 @@ class DefaultController
      * @param Request $request
      * @param EntityManager $em
      * @param Logger $logger
-     *
-     * TODO: Need server-side full-blown validation!
      * @throws \Exception
      */
     public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
     {
-        $logger->debug($request->getSession()->get('captcha'));
+        $response = new Response();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->headers->set('Content-Type', 'text/json');
 
-        if ($request->getMethod() === $request::METHOD_POST) {
-            $guestbookRecord = new GuestbookRecord();
-            $user = new User();
-            $userAgent = new UserAgent();
+        $status = 'true';
 
-            $user->setUserName($request->request->get('inputUserName'));
-            $user->setEmail($request->request->get('inputEmail'));
-            $user->setUserIp($request->getClientIp());
+        try {
+            if ($request->getMethod() === $request::METHOD_POST) {
+                $guestbookRecord = new GuestbookRecord();
+                $user = new User();
+                $userAgent = new UserAgent();
 
-            $userAgent->setUser($user);
-            $userAgent->setUserAgent($request->headers->get('User-Agent'));
+                if (preg_match('/^[a-zA-Z0-9\'.\s]{1,64}$/', $request->request->get('inputUserName'))) {
+                    $user->setUserName($request->request->get('inputUserName'));
+                } else {
+                    throw new \Exception('There is invalid characters in user name! [' . $request->request->get('inputUserName') . ']');
+                }
 
-            $guestbookRecord->setUser($user);
-            $guestbookRecord->setCreateTime(new \DateTime('now'));
-            $guestbookRecord->setText($request->request->get('inputMessage'));
+                if (filter_var($request->request->get('inputEmail'), FILTER_VALIDATE_EMAIL)) {
+                    $user->setEmail($request->request->get('inputEmail'));
+                } else {
+                    throw new \Exception('Email is not valid! [' . $request->request->get('inputEmail') . ']');
+                }
 
-            try {
+                $user->setUserIp($request->getClientIp());
+
+                $userAgent->setUser($user);
+                $userAgent->setUserAgent($request->headers->get('User-Agent'));
+
+                $guestbookRecord->setUser($user);
+                $guestbookRecord->setCreateTime(new \DateTime('now'));
+
+                if (!preg_match('/<(.|\n)*?>/', $request->request->get('inputMessage'))) {
+                    $guestbookRecord->setText($request->request->get('inputMessage'));
+                } else {
+                    throw new \Exception('There is forbidden HTML tags in message text found!');
+                }
+
+                if (empty($request->getSession()) || $request->get('inputCAPTCHA') !== $request->getSession()->get('captcha')) {
+                    throw new \Exception('CAPTCHA not found in session or not valid!');
+                }
+
                 $em->persist($userAgent);
                 $em->persist($guestbookRecord);
                 $em->flush();
-            } catch (\Exception $e) {
-                return;
-            }
-        };
+            };
+        } catch (\Exception $e) {
+            $logger->error('Exception during data processing.', [($e->getMessage())]);
+            $status = 'false';
+        }
+
+        $response->setContent(json_encode(['success' => $status]));
+
+        $response->prepare($request);
+        $response->send();
+
         return;
     }
 
@@ -155,7 +181,6 @@ class DefaultController
         $disposition = $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'captcha.png');
         $response->headers->set('Content-Disposition', $disposition);
         $response->headers->set('Content-Type', 'image/png');
-
 
         $response->prepare($request);
         $response->send();

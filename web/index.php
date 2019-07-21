@@ -80,7 +80,7 @@ try {
         $request->attributes->add(['captcha' => $captcha]);
 
         $session->set('captcha', $captcha);
-        $logger->debug($captcha);
+//        $logger->debug($captcha);
     }
     $request->setSession($session);
 
