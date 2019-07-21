@@ -81,7 +81,7 @@
                     pattern: /^[a-zA-Z0-9\s]+$/,
                     remote: {
                         url: 'validate-captcha',
-                        type: "post",
+                        type: "POST",
                         complete: function (data) {
                             /* Additional code to run if the element passes validation */
                             if (data) {
@@ -141,11 +141,17 @@
             // Make sure the form is submitted to the destination defined
             // in the "action" attribute of the form when valid
             submitHandler: function (form) {
+                var form = $(form)[0];
+                var data = new FormData(form);
                 $.ajax({
-                    type: "post",
+                    type: "POST",
                     url: $(form).attr('action'),
-                    data: $(form).serialize(), // serializes the form's elements.
+                    data: data,
                     dataType: "json",
+                    enctype: 'multipart/form-data',
+                    processData: false,  // Important!
+                    contentType: false,
+                    cache: false,
                     complete: function (data) { // reset form, hide it and show Thank you.
                         /* Additional code to run if the element passes validation */
                         if (data) {

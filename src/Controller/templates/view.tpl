@@ -13,7 +13,7 @@
     </div>
     <div class="row">
         <div class="col" id="addBlock"><h4>Оставить свой отзыв</h4>
-            <form action="/record" method="post" name="addRecord" id="addRecord">
+            <form action="/record" method="POST" name="addRecord" id="addRecord" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="inputUserName">Ваше имя</label>
                     <input type="text" class="form-control" name="inputUserName" id="inputUserName" placeholder="Имя"
