@@ -101,7 +101,7 @@ class DefaultController
         $status = 'true';
 
         try {
-            if ($request->getMethod() === $request::METHOD_POST) {
+            if ($request->getMethod() === $request::METHOD_POST && $request->isXmlHttpRequest()) {
                 $guestbookRecord = new GuestbookRecord();
                 $user = new User();
                 $userAgent = new UserAgent();
@@ -139,9 +139,12 @@ class DefaultController
                 $em->persist($userAgent);
                 $em->persist($guestbookRecord);
                 $em->flush();
+            } else {
+                throw new \Exception('Invalid method for this route! [' . $request->getMethod() . '' . $request->isXmlHttpRequest() . ']');
             };
         } catch (\Exception $e) {
             $logger->error('Exception during data processing.', [($e->getMessage())]);
+            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
             $status = 'false';
         }
 
