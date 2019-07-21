@@ -67,9 +67,16 @@ try {
     $request->attributes->add(['em' => $entityManager]);
     $request->attributes->add(['logger' => $logger]);
 
-    $captcha_seed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
-    $captcha = substr(str_shuffle($captcha_seed), 0, 6);
-    $request->attributes->add(['captcha' => $captcha]);
+    if ($attributes['_route'] === 'captcha') {
+        $captchaSeed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
+        $captcha = substr(str_shuffle($captchaSeed), 0, 6);
+
+        $request->attributes->add(['captcha' => $captcha]);
+
+        $session->set('captcha', $captcha);
+        $logger->debug($captcha);
+    }
+    $request->setSession($session);
 
     $controllerResolver = new Controller\ControllerResolver();
     $argumentResolver = new Controller\ArgumentResolver();
