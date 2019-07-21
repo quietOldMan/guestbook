@@ -2,11 +2,14 @@
 <div class="container">
     <h1 class="text-center">Добро пожаловать!</h1>
     <hr class="mt-4 mb-4">
-    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="alertBox" style="display:none;">
+    <div class="alert alert-success alert-dismissible fade show" role="alert" id="successBox" style="display:none;">
         <strong>Спасибо за ваш отзыв!</strong>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
+    </div>
+    <div class="alert alert-danger" style="display:none;" role="alert" id="errorBox">
+        <strong>Ошибка при записи данных! Проверьте поля на недопустимые значения.</strong>
     </div>
     <div class="row">
         <div class="col" id="addBlock"><h4>Оставить свой отзыв</h4>
@@ -38,7 +41,7 @@
                             type="text" class="form-control"
                             name="inputCAPTCHA"
                             id="inputCAPTCHA" placeholder=""
-                            aria-describedby="CAPTCHAHelp">
+                            aria-describedby="CAPTCHAHelp" autocomplete="off">
                     <small id="CAPTCHAHelp" class="form-text text-muted">Проверка на человечность, введите текст с
                         картинки.
                     </small>

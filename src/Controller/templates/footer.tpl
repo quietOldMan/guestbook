@@ -35,14 +35,6 @@
         $(this).load($(this).attr('src'));
     });
 
-    // $(document).on("focusout", "#inputMessage", function (e) {
-    //     var reg = /<(.|\n)*?>/g;
-    //     if (reg.test($('#inputMessage').val()) == true) {
-    //         alert('HTML Tag are not allowed');
-    //     }
-    //     e.preventDefault();
-    // });
-
     $.validator.addMethod("validateMessageText", function (value, element) {
         var reg = /<(.|\n)*?>/g;
         return (reg.test(value) !== true);
@@ -134,47 +126,34 @@
             // in the "action" attribute of the form when valid
             submitHandler: function (form) {
                 $.ajax({
-                    type: "POST",
+                    type: "post",
                     url: $(form).attr('action'),
                     data: $(form).serialize(), // serializes the form's elements.
-                    success: function (data) { // reset form, hide it and show Thank you.
-                        $(form).trigger('reset');
-                        $('#pageFirst').trigger("click");
-                        $('#alertBox').show();
-                        $("#addBlock").hide();
+                    dataType: "json",
+                    complete: function (data) { // reset form, hide it and show Thank you.
+                        /* Additional code to run if the element passes validation */
+                        if (data) {
+                            var json = $.parseJSON(data.responseText);
+                            if (json['success']) {
+                                if (json['success'] === "true") {
+                                    $('#errorBox').hide();
+                                    $(form).trigger('reset');
+                                    $('#pageFirst').trigger("click");
+                                    $('#successBox').show();
+                                    $("#addBlock").hide();
+                                } else {
+                                    $('#errorBox').show();
+                                    $('#inputCAPTCHA').val('');
+                                    $('#captcha').trigger("click");
+                                }
+                            }
+                        }
+
                     }
                 });
             }
         });
     });
-
-    // $(function () {
-    //     $("body").on("click", "#refreshimg", function () {
-    //         $.post("newsession.php");
-    //         $("#captchaimage").load("image_req.php");
-    //         return false;
-    //     });
-    //
-    //     $("#captchaform").validate({
-    //         rules: {
-    //             captcha: {
-    //                 required: true,
-    //                 remote: "process.php"
-    //             }
-    //         },
-    //         messages: {
-    //             captcha: "Correct captcha is required. Click the captcha to generate a new one"
-    //         },
-    //         submitHandler: function () {
-    //             alert("Correct captcha!");
-    //         },
-    //         success: function (label) {
-    //             label.addClass("valid").text("Valid captcha!")
-    //         },
-    //         onkeyup: false
-    //     });
-    //
-    // });
     {/literal}
 </script>
 </body>
