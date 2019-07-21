@@ -79,7 +79,7 @@ try {
     $request->attributes->add(['logger' => $logger]);
 
     if ($attributes['_route'] === 'captcha') {
-        $captchaSeed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz';
+        $captchaSeed = 'ABCDEFGHJKLMNOPQRSTUVWXYZ1234567890abcdefghijkmnpqrstuvwxyz';
         $captcha = substr(str_shuffle($captchaSeed), 0, 6);
 
         $request->attributes->add(['captcha' => $captcha]);
