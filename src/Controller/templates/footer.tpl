@@ -37,9 +37,16 @@
 
     $.validator.addMethod("validateMessageText", function (value, element) {
         var reg = /<(.|\n)*?>/g;
-        return (reg.test(value) !== true);
+        return this.optional(element) || (reg.test(value) !== true);
     }, '');
 
+    $.validator.addMethod('filesize', function (value, element, param) {
+        var imageFileExtension = ['jpeg', 'jpg', 'png', 'gif']; // param[0] - 5MB
+        var textFileExtension = ['txt']; // param[1] - 100KB
+        return this.optional(element) ||
+            (($.inArray(element.value.split('.').pop().toLowerCase(), imageFileExtension) !== -1 && element.files[0].size <= param[0]) ||
+                ($.inArray(element.value.split('.').pop().toLowerCase(), textFileExtension) !== 1 && element.files[0].size <= param[1]))
+    }, '');
 
     $(function () {
         // Initialize form validation on the registration form.
@@ -63,6 +70,11 @@
                 inputMessage: {
                     required: true,
                     validateMessageText: true
+                },
+                inputFile: {
+                    accept: "", // !override attribute from input field - bug in validation!
+                    extension: "png|jpe?g|gif|txt",
+                    filesize: [5242880, 102400] // param[0] = 5MB - for image, param[1] = 100KB - for text
                 },
                 inputCAPTCHA: {
                     required: true,
@@ -96,6 +108,10 @@
                 inputMessage: {
                     required: "Напишите нам хоть пару слов",
                     validateMessageText: "HTML тэги в сообщении недопустимы!"
+                },
+                inputFile: {
+                    extension: "Недопустимый тип файла!",
+                    filesize: "Не могу загрузить, размер файла слишком большой!"
                 },
                 inputCAPTCHA: {
                     required: "Введите текст с картинки",

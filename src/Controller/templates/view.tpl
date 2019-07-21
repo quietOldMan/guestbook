@@ -17,14 +17,14 @@
                 <div class="form-group">
                     <label for="inputUserName">Ваше имя</label>
                     <input type="text" class="form-control" name="inputUserName" id="inputUserName" placeholder="Имя"
-                           aria-describedby="nameHelp">
+                           aria-describedby="nameHelp" required>
                     <small id="nameHelp" class="form-text text-muted">Допускаются латинские буквы, цифры и точка.
                     </small>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail">Email</label>
                     <input type="email" class="form-control" name="inputEmail" id="inputEmail" placeholder="Email"
-                           aria-describedby="emailHelp">
+                           aria-describedby="emailHelp" required>
                     <small id="emailHelp" class="form-text text-muted">Мы никогда и ни с кем не делимся вашим адресом
                         email.
                     </small>
@@ -32,16 +32,21 @@
                 <div class="form-group">
                     <label for="inputMessage">Сообщение</label>
                     <textarea class="form-control" name="inputMessage" id="inputMessage" rows="3"
-                              aria-describedby="messageHelp"></textarea>
+                              aria-describedby="messageHelp" required></textarea>
                     <small id="messageHelp" class="form-text text-muted" style="display:none;">HTML тэги недопустимы!
                     </small>
                 </div>
+                <div class="custom-file">
+                    <label class="custom-file-label" for="inputFile">Прикрепить файл: текст или изображение</label>
+                    <input type="file" class="custom-file-input" name="inputFile" id="inputFile"
+                           accept=".jpg,.jpeg,.gif,.png,.txt">
+                </div>
                 <div class="form-group">
-                    <img class="rounded float-left p-3" src="/captcha" id="captcha" name="captcha"/><br/><input
-                            type="text" class="form-control"
-                            name="inputCAPTCHA"
-                            id="inputCAPTCHA" placeholder=""
-                            aria-describedby="CAPTCHAHelp" autocomplete="off">
+                    <img class="rounded float-left p-3" src="/captcha" id="captcha" name="captcha"/><br/>
+                    <input type="text" class="form-control"
+                           name="inputCAPTCHA"
+                           id="inputCAPTCHA" placeholder=""
+                           aria-describedby="CAPTCHAHelp" autocomplete="off" required>
                     <small id="CAPTCHAHelp" class="form-text text-muted">Проверка на человечность, введите текст с
                         картинки.
                     </small>
