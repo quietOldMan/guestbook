@@ -11,6 +11,7 @@ use Guestbook\Entity\User;
 use Guestbook\Entity\UserAgent;
 use Monolog\Logger;
 use Smarty;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -166,15 +167,22 @@ class DefaultController
                     $uploadedFile = $request->files->get('inputFile');
 
                     $contentPath = $this->uploadDir . DIRECTORY_SEPARATOR . $guestbookRecord->getCreateTime()->format('Ym');
+                    $fileName = uniqid() . '-' . $uploadedFile->getClientOriginalName();
 
                     $recordAttachment->setRecordId($guestbookRecord);
                     $recordAttachment->setContentPath($contentPath);
-                    $recordAttachment->setFileName($uploadedFile->getClientOriginalName());
-                    $recordAttachment->setContentType($uploadedFile->getClientMimeType());
-                    $recordAttachment->setContentSize($uploadedFile->getSize());
+                    $recordAttachment->setFileName($fileName);
+                    $recordAttachment->setContentType($uploadedFile->getMimeType());
 
-                    // После перемещения getSize() уже не работает, заполнение модели идёт выше.
-                    $uploadedFile->move(ROOT_PATH . DIRECTORY_SEPARATOR . $contentPath, $uploadedFile->getClientOriginalName());
+                    $logger->debug($uploadedFile->guessExtension());
+
+                    if (in_array($uploadedFile->guessExtension(), ['jpeg', 'jpg', 'gif', 'png'], true)) {
+                        $this->resizeImageIfNeeded($uploadedFile);
+                    }
+
+                    // После перемещения guessExtension() уже не работает, getSize() надо вызывать заново, у нас уже другой файл.
+                    $fileSize = $uploadedFile->move(ROOT_PATH . DIRECTORY_SEPARATOR . $contentPath, $fileName)->getSize();
+                    $recordAttachment->setContentSize($fileSize);
 
                     $em->persist($recordAttachment);
                 };
@@ -250,5 +258,46 @@ class DefaultController
         $this->response->prepare($request);
         $this->response->send();
         return;
+    }
+
+    /**
+     * @param UploadedFile $file
+     * @param int $maxWidth
+     * @param int $maxHeight
+     * @return false|int
+     */
+    private function resizeImageIfNeeded(UploadedFile $file, int $maxWidth = 320, int $maxHeight = 240)
+    {
+        $fileName = $file->getRealPath();
+        $fileType = $file->guessExtension();
+
+        list($width, $height, $type, $attr) = getimagesize($fileName);
+        if ($width > $maxWidth || $height > $maxHeight) {
+            $ratio = $width / $height;
+            if ($ratio > 1) {
+                $newWidth = $maxWidth;
+                $newHeight = $maxWidth / $ratio;
+            } else {
+                $newWidth = $maxHeight * $ratio;
+                $newHeight = $maxHeight;
+            }
+            $sourceImage = imagecreatefromstring(file_get_contents($fileName));
+            $destinationImage = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($destinationImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($sourceImage);
+            switch ($fileType) {
+                case 'jpeg':
+                case 'jpg':
+                    imagejpeg($destinationImage, $fileName);
+                    break;
+                case 'png':
+                    imagepng($destinationImage, $fileName);
+                    break;
+                case 'gif':
+                    imagegif($destinationImage, $fileName);
+            }
+            imagedestroy($destinationImage);
+            return;
+        }
     }
 }
