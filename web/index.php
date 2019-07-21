@@ -42,7 +42,12 @@ $guestbookAddRecordRoute = new Route(
 
 $captchaRoute = new Route(
     '/captcha',  // path
-    array('_controller' => 'Guestbook\Controller\DefaultController::createCaptchaAction', 'page' => 0) // default values
+    array('_controller' => 'Guestbook\Controller\DefaultController::createCaptchaAction') // default values
+);
+
+$validateCaptchaRoute = new Route(
+    '/validate-captcha',  // path
+    array('_controller' => 'Guestbook\Controller\DefaultController::validateCaptchaAction') // default values
 );
 
 $routes = new RouteCollection();
@@ -50,6 +55,7 @@ $routes->add('guestbook', $guestbookRoute);
 $routes->add('table', $guestbookTableRoute);
 $routes->add('record', $guestbookAddRecordRoute);
 $routes->add('captcha', $captchaRoute);
+$routes->add('validate_captcha', $validateCaptchaRoute);
 
 $context = new RequestContext();
 

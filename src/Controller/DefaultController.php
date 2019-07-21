@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * Class DefaultController
  * @package Guestbook\Controller
  *
- * TODO: New method for ajax CAPTHCA validation.
+ * TODO: New method for ajax CAPTCHA validation.
  */
 class DefaultController
 {
@@ -92,6 +92,8 @@ class DefaultController
      */
     public function addRecordAction(Request $request, EntityManager $em, Logger $logger)
     {
+        $logger->debug($request->getSession()->get('captcha'));
+
         if ($request->getMethod() === $request::METHOD_POST) {
             $guestbookRecord = new GuestbookRecord();
             $user = new User();
@@ -154,6 +156,23 @@ class DefaultController
         $response->headers->set('Content-Disposition', $disposition);
         $response->headers->set('Content-Type', 'image/png');
 
+
+        $response->prepare($request);
+        $response->send();
+        return;
+    }
+
+    public function validateCaptchaAction(Request $request, Logger $logger)
+    {
+        $response = new Response();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->headers->set('Content-Type', 'text/json');
+
+        if (!empty($request->getSession()) && $request->get('inputCAPTCHA') === $request->getSession()->get('captcha')) {
+            $response->setContent(json_encode(true));
+        } else {
+            $response->setContent(json_encode('Текст не совпадает с картинкой, попробуйте снова'));
+        }
 
         $response->prepare($request);
         $response->send();

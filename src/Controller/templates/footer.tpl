@@ -78,6 +78,18 @@
                     remote: {
                         url: 'validate-captcha',
                         type: "post",
+                        complete: function (data) {
+                            /* Additional code to run if the element passes validation */
+                            if (data) {
+                                var json = $.parseJSON(data.responseText);
+                                if (json[0]) {
+                                    if (json[0].valid !== "true") {
+                                        $('#inputCAPTCHA').val('');
+                                        $('#captcha').trigger("click");
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
 
